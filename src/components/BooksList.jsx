@@ -1,30 +1,35 @@
+import React, { useState, useEffect } from "react";
 import Spinner from "./Spinner";
-import BookItem from "./BookItem"
-import { useState, useEffect } from "react";
+import BookItem from "./BookItem";
 import { getAllBooksRequest, searchBooksRequest, deleteBookRequest } from "../api";
+import { toast } from "react-toastify";
+import { FaArrowUp, FaArrowDown } from "react-icons/fa";
 
 const BooksList = ({ search }) => {
     const [books, setBooks] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [sortConfig, setSortConfig] = useState({ key: "title", direction: "asc" });
 
     useEffect(() => {
         const fetchData = async () => {
             setLoading(true);
 
             try {
-                let ok, books;
+                let response, books;
                 if (search === "") {
-                    ({ ok, books } = await getAllBooksRequest());
+                    ({ response, books } = await getAllBooksRequest());
                 } else {
-                    ({ ok, books } = await searchBooksRequest(search));
+                    ({ response, books } = await searchBooksRequest(search));
                 }
 
-                if (ok) {
+                if (response === 200) {
                     setBooks(books);
                     setLoading(false);
+                } else {
+                    toast.error("Виникла помилка");
                 }
             } catch (error) {
-                console.log("Error fetching data", error);
+                toast.error("Виникла помилка");
             }
         };
 
@@ -33,10 +38,26 @@ const BooksList = ({ search }) => {
 
     const updateList = async (ok, id) => {
         if (ok) {
+            toast.success("Книжку було успішно видалено");
             setBooks((prevBooks) => prevBooks.filter((book) => book.id !== id));
         } else {
-            console.log("Error updating book list");
+            toast.error("Виникла помилка. Спробуйте пізніше");
         }
+    };
+
+    const handleSort = (key) => {
+        let direction = 'asc';
+        if (sortConfig && sortConfig.key === key && sortConfig.direction === 'asc') {
+            direction = 'desc';
+        }
+        setSortConfig({ key, direction });
+    };
+
+    const sortedBooks = () => {
+        if (sortConfig.direction === 'asc') {
+            return books.sort((a, b) => (a[sortConfig.key] > b[sortConfig.key] ? 1 : -1))
+        }
+        return books.sort((a, b) => (a[sortConfig.key] > b[sortConfig.key] ? -1 : 1))
     };
 
     return (
@@ -44,42 +65,60 @@ const BooksList = ({ search }) => {
             <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
                 <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                     <tr>
-                        <th scope="col" className="px-6 py-3">
-                            #
-                        </th >
-                        <th scope="col" className="px-6 py-3">
-                            Title
+                        <th scope="col" className="px-6 py-3">#</th>
+                        <th scope="col" className="px-6 py-3 w-64 min-w-64" onClick={() => handleSort('title')}>
+                            <div className="flex items-center">
+                                Назва
+                                {sortConfig && sortConfig.key === 'title' && (
+                                    sortConfig.direction === 'asc' ? <FaArrowDown /> : <FaArrowUp />
+                                )}
+                            </div>
                         </th>
-                        <th scope="col" className="px-6 py-3">
-                            Author
+                        <th scope="col" className="px-6 py-3 w-64 min-w-64" onClick={() => handleSort('authorSurname')}>
+                            <div className="flex items-center">
+                                Автор
+                                {sortConfig && sortConfig.key === 'authorSurname' && (
+                                    sortConfig.direction === 'asc' ? <FaArrowDown /> : <FaArrowUp />
+                                )}
+                            </div>
                         </th>
-                        <th scope="col" className="px-6 py-3">
-                            Quantity
+                        <th scope="col" className="px-6 py-3 w-64 min-w-64" onClick={() => handleSort('year')}>
+                            <div className="flex items-center">
+                                Рік видання
+                                {sortConfig && sortConfig.key === 'year' && (
+                                    sortConfig.direction === 'asc' ? <FaArrowDown /> : <FaArrowUp />
+                                )}
+                            </div>
                         </th>
-                        <th scope="col" className="px-6 py-3">
-                            Actions
+                        <th scope="col" className="px-6 py-3 w-64 min-w-64" onClick={() => handleSort('quantity')}>
+                            <div className="flex items-center">
+                                Кількість
+                                {sortConfig && sortConfig.key === 'quantity' && (
+                                    sortConfig.direction === 'asc' ? <FaArrowUp /> : <FaArrowDown />
+                                )}
+                            </div>
                         </th>
-                    </tr >
-                </thead >
+                        <th scope="col" className="px-6 py-3">Дії</th>
+                    </tr>
+                </thead>
                 <tbody>
                     {loading ? (
                         <tr>
-                            <td colSpan="5" className="px-6 py-3 text-center"> <Spinner /> </td>
+                            <td colSpan="5" className="px-6 py-3 items-center"> <Spinner /> </td>
                         </tr>
                     ) : (
-                        books.map((book, index) => (
+                        sortedBooks().map((book, index) => (
                             <BookItem
                                 key={book.id}
                                 index={index + 1}
                                 book={book}
-                                updateList={updateList}
-                                deleteBookRequest={deleteBookRequest} />
+                                updateList={updateList} />
                         ))
                     )}
                 </tbody>
-            </table >
-        </div >
-    )
-}
+            </table>
+        </div>
+    );
+};
 
 export default BooksList;

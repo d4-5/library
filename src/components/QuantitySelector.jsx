@@ -1,16 +1,17 @@
-import { useState } from "react";
-
-const QuantitySelector = () => {
-    const [quantity, setQuantity] = useState(1);
-
+const QuantitySelector = ({ value, onChange }) => {
     const handleIncrement = () => {
-        setQuantity((prevQuantity) => prevQuantity + 1);
+        onChange(value + 1);
     };
 
     const handleDecrement = () => {
-        if (quantity > 0) {
-            setQuantity((prevQuantity) => prevQuantity - 1);
+        if (value > 1) {
+            onChange(value - 1);
         }
+    };
+
+    const handleChange = (e) => {
+        const newValue = parseInt(e.target.value, 10) || 1;
+        onChange(newValue);
     };
 
     return (
@@ -43,8 +44,8 @@ const QuantitySelector = () => {
                 data-input-counter
                 aria-describedby="helper-text-explanation"
                 className="bg-gray-50 border-x-0 border-gray-300 h-11 text-center text-gray-900 text-sm focus:ring-blue-500 focus:border-blue-500 block w-full py-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                value={quantity}
-                onChange={(e) => setQuantity(parseInt(e.target.value) || 0)}
+                value={value}
+                onChange={handleChange}
                 required
             />
             <button

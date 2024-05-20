@@ -3,13 +3,13 @@ const url = "https://library-server.azurewebsites.net"
 const getAllBooksRequest = async () => {
     const response = await fetch(url + `/api/books`);
     const books = await response.json();
-    return { ok: response.ok, books: books };
+    return { response: response.status, books: books };
 };
 
 const getBookRequest = async ({ params }) => {
     const response = await fetch(url + `/api/books/${params.id}`);
     const book = await response.json();
-    return { ok: response.ok, book: book };
+    return { response: response.status, book: book };
 };
 
 const addBookRequest = async (newBook) => {
@@ -20,14 +20,14 @@ const addBookRequest = async (newBook) => {
         },
         body: JSON.stringify(newBook),
     });
-    return response.ok;
+    return response.status;
 };
 
 const deleteBookRequest = async (id) => {
     const response = await fetch(url + `/api/books/${id}`, {
         method: 'DELETE',
     });
-    return response.ok;
+    return response.status;
 };
 
 const editBookRequest = async (updatedBook) => {
@@ -39,7 +39,7 @@ const editBookRequest = async (updatedBook) => {
         },
         body: JSON.stringify(updatedBook),
     });
-    return response.ok;
+    return response.status;
 };
 
 const searchBooksRequest = async (query) => {
@@ -47,7 +47,7 @@ const searchBooksRequest = async (query) => {
         method: 'GET',
     });
     const books = await response.json();
-    return { ok: response.ok, books: books };
+    return { response: response.status, books: books };
 };
 
 export { getAllBooksRequest, getBookRequest, addBookRequest, deleteBookRequest, editBookRequest, searchBooksRequest }
